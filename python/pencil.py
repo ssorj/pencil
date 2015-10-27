@@ -176,7 +176,7 @@ def html_table(items, first_row_headings=True, first_col_headings=False,
 
         rows.append(html_tr("".join(cols)))
 
-    tbody = html_elem("tbody", "".join(rows))
+    tbody = html_elem("tbody", "\n{}\n".format("\n".join(rows)))
         
     return _html_elem("table", tbody, attrs)
 
