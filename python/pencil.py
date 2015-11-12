@@ -17,7 +17,13 @@
 # under the License.
 #
 
+import os as _os
 import re as _re
+import time as _time
+
+from pprint import pformat as _pformat
+from xml.sax.saxutils import escape as _xml_escape
+from xml.sax.saxutils import unescape as _xml_unescape
 
 # String formatting functions
 
@@ -53,10 +59,86 @@ def first_sentence(text):
     
     return match.group(1)
 
-# HTML functions
+def plural(noun, count=0):
+    if noun is None:
+        return
 
-from xml.sax.saxutils import escape as _xml_escape
-from xml.sax.saxutils import unescape as _xml_unescape
+    if count == 1:
+        return noun
+
+    if noun.endswith("s"):
+        return "{}ses".format(noun)
+
+    return "{}s".format(noun)
+
+def format_list(coll):
+    if not coll:
+        return
+
+    return ", ".join([_pformat(x) for x in coll])
+
+def format_dict(coll):
+    if not coll:
+        return
+
+    if not isinstance(coll, dict) and hasattr(coll, "__iter__"):
+        coll = dict(coll)
+
+    out = list()
+    key_len = max([len(str(x)) for x in coll])
+    key_len = min(48, key_len)
+    key_len += 2
+    indent = " " * (key_len + 2)
+    fmt = "%%-%ir  %%s" % key_len
+
+    for key in sorted(coll):
+        value = _pformat(coll[key])
+        value = value.replace("\n", "\n{}".format(indent))
+        args = key, value
+
+        out.append(fmt % args)
+
+    return _os.linesep.join(out)
+
+def format_repr(obj, *args):
+    cls = obj.__class__.__name__
+    strings = [str(x) for x in args]
+    return "{}({})".format(cls, ",".join(strings))
+
+_date_format = "%Y-%m-%d %H:%M:%S"
+
+def format_local_unixtime(utime=None):
+    if utime is None:
+        return
+
+    return _time.strftime(_date_format + " %Z", _time.localtime(utime))
+
+def format_local_unixtime_medium(utime):
+    if utime is None:
+        return
+
+    return _time.strftime("%d %b %H:%M", _time.localtime(utime))
+
+def format_local_unixtime_brief(utime):
+    if utime is None:
+        return
+
+    now = _time.time()
+
+    if utime > now - 86400:
+        fmt = "%H:%M"
+    else:
+        fmt = "%d %b"
+
+    return _time.strftime(fmt, _time.localtime(utime))
+
+def format_datetime(dtime):
+    if dtime is None:
+        return
+
+    return dtime.strftime(_date_format)
+
+# HTML functions
 
 _extra_entities = {
     '"': "&quot;",
@@ -75,6 +157,14 @@ def xml_unescape(string):
         return
 
     return _xml_unescape(string)
+
+_strip_tags_regex = _re.compile(r"<[^<]+?>")
+
+def strip_tags(string):
+    if string is None:
+        return
+
+    return re.sub(_strip_tags_regex, "", string)
 
 def _html_elem(tag, content, attrs):
     attrs = _html_attrs(attrs)
