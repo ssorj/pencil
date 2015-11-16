@@ -138,6 +138,45 @@ def format_datetime(dtime):
 
     return dtime.strftime(_date_format)
 
+# String-related utilities
+
+class StringCatalog(dict):
+    def __init__(self, path):
+        super().__init__()
+
+        self.path = "{}.strings".format(_os.path.splitext(path)[0])
+
+        with open(self.path) as file:
+            strings = self._parse(file)
+
+        self.update(strings)
+
+    def _parse(self, file):
+        strings = dict()
+        key = None
+        out = list()
+
+        for line in file:
+            line = line.rstrip()
+
+            if line.startswith("[") and line.endswith("]"):
+                if key:
+                    strings[key] = "".join(out).strip()
+
+                out = list()
+                key = line[1:-1]
+
+                continue
+
+            out.append(line)
+
+        strings[key] = _os.linesep.join(out).strip()
+
+        return strings
+
+    def __repr__(self):
+        return format_repr(self, self.path)
+
 # HTML functions
 
 _extra_entities = {
@@ -243,7 +282,7 @@ def html_section(content, **attrs):
     return _html_elem("section", content, attrs)
 
 def html_table(items, first_row_headings=True, first_col_headings=False,
-               **attrs):
+               escape_cell_data=True, **attrs):
     row_headings = list()
     rows = list()
 
@@ -259,6 +298,9 @@ def html_table(items, first_row_headings=True, first_col_headings=False,
         cols = list()
 
         for i, cell in enumerate(item):
+            if escape_cell_data:
+                cell = xml_escape(cell)
+            
             if i == 0 and first_col_headings:
                 cols.append(html_th(cell))
             else:
