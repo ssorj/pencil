@@ -27,16 +27,9 @@ from xml.sax.saxutils import unescape as _xml_unescape
 
 # String formatting functions
 
-def shorten(s, max):
-    if s is None:
-        return ""
-    
-    if len(s) < max:
-        return s
-    else:
-        return s[0:max]
-
 def nvl(value, substitution, template=None):
+    assert substitution is not None
+
     if value is None:
         return substitution
 
@@ -45,7 +38,22 @@ def nvl(value, substitution, template=None):
 
     return value
 
+def shorten(s, max):
+    if s is None:
+        return ""
+
+    assert max is not None
+    assert isinstance(max, int)
+    
+    if len(s) < max:
+        return s
+    else:
+        return s[0:max]
+
 def init_cap(s):
+    if s is None:
+        return ""
+    
     return s[0].upper() + s[1:]
 
 def first_sentence(text):
