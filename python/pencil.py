@@ -151,6 +151,33 @@ def format_datetime(dtime):
 
     return dtime.strftime(_date_format)
 
+_duration_units = (
+    (86400 * 365, 2, "year", "yr"),
+    (86400 * 30,  2, "month", "mo"),
+    (86400 * 7,   2, "week", "w"),
+    (86400,       2, "day", "d"),
+    (3600,        1, "hour", "h"),
+    (60,          1, "minute", "m"),
+)
+
+def format_duration_coarse(seconds):
+    for duration, threshold, name, abbrev in _duration_units:
+        count = int(seconds / duration)
+
+        if count >= threshold:
+            return "{:2} {}".format(count, plural(name, count))
+
+    return "{:2} {}".format(count, plural(name, count))
+
+def format_duration_coarse_brief(seconds):
+    for duration, threshold, name, abbrev in _duration_units:
+        count = int(seconds / duration)
+
+        if count >= threshold:
+            return "{:2}{}".format(count, abbrev)
+
+    return "{:2}{}".format(count, abbrev)
+
 # String-related utilities
 
 class StringCatalog(dict):
